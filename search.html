@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Thư viện NHC</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f6f9;
+text-align:center;
+}
+
+h1{
+color:#333;
+}
+
+.searchBox{
+width:400px;
+padding:12px;
+font-size:16px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+table{
+margin:auto;
+margin-top:25px;
+border-collapse:collapse;
+background:white;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+th{
+background:#2c7be5;
+color:white;
+padding:10px 20px;
+}
+
+td{
+padding:10px 20px;
+border-bottom:1px solid #eee;
+}
+
+.low{
+color:red;
+font-weight:bold;
+}
+
+.suggestion{
+width:400px;
+margin:auto;
+background:white;
+border:1px solid #ccc;
+border-top:none;
+}
+
+.suggestion div{
+padding:8px;
+cursor:pointer;
+}
+
+.suggestion div:hover{
+background:#f1f1f1;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>📚 Thư viện THPT NHC</h1>
+
+<input type="text" id="searchBox" class="searchBox" placeholder="Tìm mã sách, tên sách..." autocomplete="off">
+
+<div id="suggestions" class="suggestion"></div>
+
+<table id="result">
+
+<thead>
+<tr>
+<th>Mã sách</th>
+<th>Tên sách</th>
+<th>Loại</th>
+<th>Số lượng</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+<script>
+
+const sheetURL="https://docs.google.com/spreadsheets/d/19nM0kycd3HIW0K3QR6ZCbs3qavf4IyLPUC8vWvEUcuo/gviz/tq?tqx=out:json";
+
+let data=[];
+
+fetch(sheetURL)
+.then(res=>res.text())
+.then(text=>{
+
+let json=JSON.parse(text.substr(47).slice(0,-2));
+let rows=json.table.rows;
+
+rows.forEach(r=>{
+let row=r.c.map(c=>c?c.v:"");
+data.push(row);
+});
+
+});
+
+const searchBox=document.getElementById("searchBox");
+const tbody=document.querySelector("#result tbody");
+const suggestions=document.getElementById("suggestions");
+
+searchBox.addEventListener("keyup",function(){
+
+let keyword=this.value.toLowerCase();
+
+tbody.innerHTML="";
+suggestions.innerHTML="";
+
+if(keyword==="") return;
+
+data.forEach(row=>{
+
+let text=row.join(" ").toLowerCase();
+
+if(text.includes(keyword)){
+
+let qty=row[3];
+let tr="<tr>";
+
+row.forEach((col,i)=>{
+
+if(i==3 && qty<5){
+tr+=`<td class="low">${col}</td>`;
+}else{
+tr+=`<td>${col}</td>`;
+}
+
+});
+
+tr+="</tr>";
+
+tbody.innerHTML+=tr;
+
+let sug=document.createElement("div");
+sug.innerText=row[1];
+
+sug.onclick=()=>{
+searchBox.value=row[1];
+suggestions.innerHTML="";
+};
+
+suggestions.appendChild(sug);
+
+}
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
